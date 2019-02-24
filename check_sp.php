@@ -10,7 +10,7 @@ if (! preg_match("/^(M[0|1][0-9])$/", $month)) {
 echo 'Month is malformed.';
 exit();
 }
-require 'connect1.php';
+require 'connect.php';
 $query = "call unem_month('".$year."', '".$month."');";
 $result = mysql_query($query);
 if (!$result) {
