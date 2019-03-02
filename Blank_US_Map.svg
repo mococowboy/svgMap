@@ -9,66 +9,69 @@
    height="593">
 <script type = "text/ecmascript">
 <![CDATA[
-var states = new Array(50);
-var year_shown = 2005
+
+var year_shown = 2008
 var month_shown = 1
 
 function getData() {
-var http_request = new XMLHttpRequest();
-http_request.open( "GET", changeMonth(), true);
-http_request.onreadystatechange = function () {
-if (http_request.readyState == 4 && http_request.status == 200) {
-       states = JSON.parse(http_request.responseText);
-  }
-};
-http_request.send(null);
+
+    let urlString = changeMonth();
+    
+    fetch(urlString).then(response => {
+        return response.json();
+    })
+    .then(states => {
+        states.forEach(state => {
+            let statePath = document.getElementById(state.state);
+            //let's pretend that 5.0% is the natural level and go from there
+            let redValue = state.rate * 15;
+            let greenValue = 63 - state.rate * 3;
+            let blueValue = 63 - state.rate * 3;
+            statePath.setAttribute("fill", "rgb(" + redValue +", 0, 0)");
+            
+            
+            let titleElement = document.createElementNS("http://www.w3.org/2000/svg", "title");
+            let stateTitle = document.createTextNode("Unemployment rate for " + state.state + " was " + state.rate);
+            
+            if (statePath.hasChildNodes()) {
+                statePath.removeChild(statePath.firstChild);
+                titleElement.appendChild(stateTitle);
+                statePath.appendChild(titleElement);
+            }
+            else {
+                titleElement.appendChild(stateTitle);
+                statePath.appendChild(titleElement);
+            }
+        })
+    })
+    
 }
 
 function changeMonth() {
-	if (month_shown < 10) {
-	var month = "check_sp.php?year=" + year_shown + "&month=M0" + month_shown;
-	}
-	else if (month_shown>= 10) {
-		if (month_shown >= 12) {
-			var month = "check_sp.php?year=" + year_shown + "&month=M12";
-			month_shown = 0;
-			year_shown = year_shown + 1;
-		}
-		else {
-			var month = "check_sp.php?year=" + year_shown + "&month=M" + month_shown;
-		}
-	}
-	else {
-		alert("Something is wrong with the month incrementer...");
-	}
-	month_shown++;
+    
+    month_shown++;
+    
+    if (month_shown == 13) {
+        month_shown = 1;
+        year_shown += 1;
+    }
+    
+    let local_month = "M" + month_shown.toString().padStart(2,"0");
+    let month = "check_sp.php?year=" + year_shown + "&month=" + local_month;
+    
 	return month;
 }
 
 document.addEventListener("click", function(evt) {
 	getData();
- 	change_color();
  	change_year_month();
  	}, false)
  	
 function change_year_month() {
-var year_month = document.getElementById("year_month");
-year_month.firstChild.nodeValue = year_shown + "/" + month_shown;
+    var year_month = document.getElementById("year_month");
+    year_month.firstChild.nodeValue = year_shown + "/" + month_shown;
 }
-function change_color() {
-var doc = document.getElementsByTagName('path');
-for (var i = 0;i < doc.length;i++) {
-	var state_id = doc.item(i).id;
-	doc.item(i).setAttribute("fill", look_up(state_id));
-	}
-}
-function look_up(state_id) {
-	var unemployment_rate = states[state_id];
-	var red_part = 255;
-	var green_part = Math.round(255 - (unemployment_rate * 15));
-	var blue_part = Math.round(255 - (unemployment_rate * 15));
-	return "rgb(" + red_part + "," + green_part + "," + blue_part + ")";
-}
+
 ]]></script>
 <style type="text/css"><![CDATA[
 .state {
